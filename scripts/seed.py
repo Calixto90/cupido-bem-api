@@ -104,7 +104,12 @@ def seed():
             for email, senha, role in credenciais:
                 f.write(f"{role:12s} | {email:35s} | {senha}\n")
 
-        print(f"Seed concluído. Credenciais gravadas em: {os.path.abspath(caminho_credenciais)}")
+        # Também impresso no stdout: em ambientes sem acesso a shell (ex: Render free
+        # tier) este é o único jeito de ler as credenciais — via log stream do deploy.
+        print("Seed concluído. Credenciais de demonstração (copie agora, não ficam salvas em disco persistente):")
+        for email, senha, role in credenciais:
+            print(f"  {role:12s} | {email:35s} | {senha}")
+        print(f"(também gravadas em: {os.path.abspath(caminho_credenciais)})")
 
 
 if __name__ == "__main__":
