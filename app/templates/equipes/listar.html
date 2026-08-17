@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Equipes{% endblock %}
+{% block conteudo %}
+<h1>Equipes</h1>
+<a class="btn" href="{{ url_for('equipes.nova_equipe') }}">+ Nova equipe</a>
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>Nome</th><th>Vendedores</th><th></th></tr></thead>
+    <tbody>
+      {% for e in equipes %}
+      <tr>
+        <td>{{ e.nome }}</td>
+        <td>{{ e.membros|map(attribute='nome')|join(', ') }}</td>
+        <td>
+          <a href="{{ url_for('equipes.editar_equipe', equipe_id=e.id) }}">editar</a>
+          <a href="{{ url_for('precificacao.visao_geral', equipe_id=e.id) }}">preços</a>
+          <form method="post" action="{{ url_for('equipes.excluir_equipe', equipe_id=e.id) }}" style="display:inline;">
+            <button type="submit" class="btn-perigo" onclick="return confirm('Excluir esta equipe?')">excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

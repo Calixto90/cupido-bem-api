@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}{{ produto.nome }}{% endblock %}
+{% block conteudo %}
+<h1>{{ produto.nome }} <span class="text-muted">({{ produto.sku }})</span></h1>
+<div class="card">
+  <p>Custo: R$ {{ '%.2f'|format(produto.custo) }} | Preço de venda: R$ {{ '%.2f'|format(produto.preco_venda) }}</p>
+  <p>Estoque atual: <span class="badge {{ 'badge-baixa' if produto.estoque_baixo else 'badge-sucesso' }}">{{ produto.estoque_atual }}</span> | Mínimo: {{ produto.estoque_minimo }}</p>
+  {% if current_user.is_role('admin', 'estoquista') %}
+  <a class="btn" href="{{ url_for('produtos.entrada_estoque', produto_id=produto.id) }}">+ Entrada de estoque</a>
+  <a class="btn btn-secundario" href="{{ url_for('produtos.editar_produto', produto_id=produto.id) }}">Editar</a>
+  {% endif %}
+</div>
+
+<div class="card table-scroll">
+  <h2>Histórico de movimentações</h2>
+  <table>
+    <thead><tr><th>Data</th><th>Tipo</th><th>Quantidade</th><th>Usuário</th><th>Descrição</th></tr></thead>
+    <tbody>
+      {% for m in movimentacoes %}
+      <tr>
+        <td>{{ m.data_movimento.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ m.tipo }}</td>
+        <td>{{ m.quantidade }}</td>
+        <td>{{ m.usuario.nome }}</td>
+        <td>{{ m.descricao or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

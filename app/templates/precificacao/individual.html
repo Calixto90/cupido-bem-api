@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}Precificar {{ produto.nome }}{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width: 460px;">
+  <h1>Precificar {{ produto.nome }} — {{ equipe.nome }}</h1>
+  <p class="text-muted">Custo do produto: R$ {{ '%.2f'|format(produto.custo) }}</p>
+  <form method="post" id="form-precificacao">
+    {{ form.hidden_tag() }}
+    <div class="field">{{ form.tipo_precificacao.label }}{{ form.tipo_precificacao() }}</div>
+    <div class="field">{{ form.valor_precificacao.label }}{{ form.valor_precificacao() }}</div>
+    <div class="field">
+      <label>Preço de venda calculado</label>
+      <strong id="preco-preview">-</strong>
+    </div>
+    {{ form.submit() }}
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+const custo = "{{ produto.custo }}";
+const tipoField = document.getElementById("{{ form.tipo_precificacao.id }}");
+const valorField = document.getElementById("{{ form.valor_precificacao.id }}");
+const preview = document.getElementById("preco-preview");
+
+async function atualizarPreview() {
+  const tipo = tipoField.value;
+  const valor = valorField.value || "0";
+  const url = `{{ url_for('precificacao.preview') }}?custo=${encodeURIComponent(custo)}&tipo=${encodeURIComponent(tipo)}&valor=${encodeURIComponent(valor)}`;
+  const resp = await fetchJSON(url, { method: "GET" });
+  preview.textContent = resp.ok ? `R$ ${resp.data.preco_venda}` : "valor inválido";
+}
+
+tipoField.addEventListener("change", atualizarPreview);
+valorField.addEventListener("input", atualizarPreview);
+atualizarPreview();
+</script>
+{% endblock %}

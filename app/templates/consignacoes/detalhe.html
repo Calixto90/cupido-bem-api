@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Consignação #{{ consignacao.id }}{% endblock %}
+{% block conteudo %}
+<h1>Consignação #{{ consignacao.id }}</h1>
+<div class="card">
+  <p>Equipe: {{ consignacao.equipe.nome }}</p>
+  <p>Produto: {{ consignacao.produto.nome }}</p>
+  <p>Quantidade inicial: {{ consignacao.quantidade_inicial }} | Atual: {{ consignacao.quantidade_atual }}</p>
+  <p>Status: <span class="badge {{ 'badge-ativa' if consignacao.status == 'ativa' else 'badge-neutra' }}">{{ consignacao.status }}</span></p>
+  <p>Criada em: {{ consignacao.data_criacao.strftime('%d/%m/%Y %H:%M') }} por {{ consignacao.criado_por.nome }}</p>
+  {% if consignacao.status == 'ativa' %}
+  <form method="post" action="{{ url_for('consignacoes.cancelar_consignacao', consignacao_id=consignacao.id) }}">
+    <button type="submit" class="btn-perigo" onclick="return confirm('Cancelar esta consignação e devolver o estoque?')">Cancelar consignação</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

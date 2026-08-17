@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}Logs de segurança{% endblock %}
+{% block conteudo %}
+<h1>Logs de segurança</h1>
+<div class="card table-scroll">
+  <table>
+    <thead><tr><th>Data</th><th>Evento</th><th>Usuário/Email</th><th>IP</th><th>Rota</th><th>Detalhes</th></tr></thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.data_evento.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        <td><span class="badge {{ 'badge-erro' if 'falho' in log.evento or 'negada' in log.evento or 'excedido' in log.evento else 'badge-sucesso' }}">{{ log.evento }}</span></td>
+        <td>{{ log.usuario.email if log.usuario else log.email_tentativa or '-' }}</td>
+        <td>{{ log.ip_address or '-' }}</td>
+        <td>{{ log.rota or '-' }}</td>
+        <td>{{ log.detalhes or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

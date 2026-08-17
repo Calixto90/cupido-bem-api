@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}Início{% endblock %}
+{% block conteudo %}
+<h1>Olá, {{ current_user.nome }}</h1>
+
+<div class="grid-cards">
+  <div class="stat">
+    <div class="valor">{{ consignacoes_ativas }}</div>
+    <div class="rotulo">Consignações ativas</div>
+  </div>
+  <div class="stat">
+    <div class="valor">{{ produtos_estoque_baixo|length }}</div>
+    <div class="rotulo">Produtos com estoque baixo</div>
+  </div>
+</div>
+
+{% if produtos_estoque_baixo %}
+<div class="card">
+  <h2>Alertas de estoque baixo</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>SKU</th><th>Nome</th><th>Estoque atual</th><th>Mínimo</th></tr></thead>
+    <tbody>
+      {% for p in produtos_estoque_baixo %}
+      <tr>
+        <td>{{ p.sku }}</td>
+        <td>{{ p.nome }}</td>
+        <td><span class="badge badge-baixa">{{ p.estoque_atual }}</span></td>
+        <td>{{ p.estoque_minimo }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Últimas movimentações</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Usuário</th></tr></thead>
+    <tbody>
+      {% for m in ultimas_movimentacoes %}
+      <tr>
+        <td>{{ m.data_movimento.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ m.produto.nome }}</td>
+        <td>{{ m.tipo }}</td>
+        <td>{{ m.quantidade }}</td>
+        <td>{{ m.usuario.nome }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

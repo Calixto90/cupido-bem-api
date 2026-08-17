@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block titulo %}Entrada de estoque{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width: 420px;">
+  <h1>Entrada de estoque — {{ produto.nome }}</h1>
+  <p class="text-muted">Estoque atual: {{ produto.estoque_atual }}</p>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="field">{{ form.quantidade.label }}{{ form.quantidade() }}</div>
+    <div class="field">{{ form.descricao.label }}{{ form.descricao() }}</div>
+    {{ form.submit() }}
+  </form>
+</div>
+{% endblock %}

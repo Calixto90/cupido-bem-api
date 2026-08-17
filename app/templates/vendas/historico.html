@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Histórico de vendas{% endblock %}
+{% block conteudo %}
+<h1>Histórico de vendas</h1>
+<div class="card table-scroll">
+  <table>
+    <thead><tr><th>Pedido</th><th>Data</th><th>Cliente</th><th>Destinatário</th><th>Total</th></tr></thead>
+    <tbody>
+      {% for v in vendas %}
+      <tr>
+        <td>{{ v.pedido_numero }}</td>
+        <td>{{ v.data_venda.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ v.nome_cliente }}</td>
+        <td>{{ v.nome_destinatario }}</td>
+        <td>R$ {{ '%.2f'|format(v.total_venda) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

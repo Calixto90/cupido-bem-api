@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Usuários{% endblock %}
+{% block conteudo %}
+<h1>Usuários</h1>
+<a class="btn" href="{{ url_for('admin.novo_usuario') }}">+ Novo usuário</a>
+<a class="btn btn-secundario" href="{{ url_for('admin.logs_seguranca') }}">Logs de segurança</a>
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Equipe</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td>{{ u.nome }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>{{ u.equipe.nome if u.equipe else '-' }}</td>
+        <td><span class="badge {{ 'badge-sucesso' if u.ativo else 'badge-erro' }}">{{ 'ativo' if u.ativo else 'inativo' }}</span></td>
+        <td>
+          <a href="{{ url_for('admin.editar_usuario', usuario_id=u.id) }}">editar</a>
+          {% if u.ativo %}
+          <form method="post" action="{{ url_for('admin.desativar_usuario', usuario_id=u.id) }}" style="display:inline;">
+            <button type="submit" class="btn-perigo" onclick="return confirm('Desativar este usuário?')">desativar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

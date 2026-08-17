@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Produtos{% endblock %}
+{% block conteudo %}
+<h1>Produtos</h1>
+{% if current_user.is_role('admin', 'estoquista') %}
+<a class="btn" href="{{ url_for('produtos.novo_produto') }}">+ Novo produto</a>
+{% endif %}
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>SKU</th><th>Nome</th><th>Custo</th><th>Preço venda</th><th>Estoque</th><th></th></tr></thead>
+    <tbody>
+      {% for p in produtos %}
+      <tr>
+        <td>{{ p.sku }}</td>
+        <td><a href="{{ url_for('produtos.detalhe_produto', produto_id=p.id) }}">{{ p.nome }}</a></td>
+        <td>R$ {{ '%.2f'|format(p.custo) }}</td>
+        <td>R$ {{ '%.2f'|format(p.preco_venda) }}</td>
+        <td><span class="badge {{ 'badge-baixa' if p.estoque_baixo else 'badge-sucesso' }}">{{ p.estoque_atual }}</span></td>
+        <td>
+          {% if current_user.is_role('admin', 'estoquista') %}
+          <a href="{{ url_for('produtos.editar_produto', produto_id=p.id) }}">editar</a>
+          <a href="{{ url_for('produtos.entrada_estoque', produto_id=p.id) }}">+ estoque</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

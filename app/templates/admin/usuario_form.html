@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width: 480px;">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="field">{{ form.nome.label }}{{ form.nome() }}</div>
+    <div class="field">{{ form.email.label }}{{ form.email() }}</div>
+    <div class="field">{{ form.role.label }}{{ form.role() }}</div>
+    <div class="field">{{ form.equipe_id.label }}{{ form.equipe_id() }}</div>
+    <div class="field">{{ form.senha.label }}{{ form.senha() }}</div>
+    <div class="field" style="flex-direction: row; align-items: center;">{{ form.ativo() }} {{ form.ativo.label }}</div>
+    {{ form.submit() }}
+  </form>
+</div>
+{% endblock %}

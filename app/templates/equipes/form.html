@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width: 480px;">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="field">{{ form.nome.label }}{{ form.nome() }}</div>
+    <div class="field">{{ form.descricao.label }}{{ form.descricao() }}</div>
+    <div class="field">
+      {{ form.vendedores.label }}
+      {{ form.vendedores(size=6) }}
+      <span class="text-muted">Segure Ctrl (ou Cmd) para selecionar 2 ou 3 vendedores.</span>
+      {% for erro in form.vendedores.errors %}<span class="text-muted" style="color: var(--cor-erro);">{{ erro }}</span>{% endfor %}
+    </div>
+    {{ form.submit() }}
+  </form>
+</div>
+{% endblock %}

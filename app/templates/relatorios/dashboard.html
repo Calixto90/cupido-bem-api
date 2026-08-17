@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block titulo %}Relatórios{% endblock %}
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block conteudo %}
+<h1>Relatórios</h1>
+<div class="card">
+  <a class="btn" href="{{ url_for('relatorios.export_csv', tipo='vendas') }}">Exportar vendas (CSV)</a>
+  <a class="btn btn-secundario" href="{{ url_for('relatorios.export_csv', tipo='estoque') }}">Exportar estoque (CSV)</a>
+</div>
+
+<div class="card">
+  <h2>Vendas por hora (últimos 30 dias)</h2>
+  <canvas id="grafico-vendas-hora"></canvas>
+</div>
+
+<div class="card">
+  <h2>Curva de estoque — unidades vendidas por dia</h2>
+  <canvas id="grafico-curva-estoque"></canvas>
+</div>
+
+<div class="card">
+  <h2>Ranking de equipes</h2>
+  <canvas id="grafico-ranking-equipes"></canvas>
+</div>
+
+<div class="card">
+  <h2>Ranking de produtos</h2>
+  <canvas id="grafico-ranking-produtos"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+async function carregarGrafico(url, elementId, montarConfig) {
+  const resp = await fetchJSON(url, { method: "GET" });
+  if (!resp.ok) return;
+  const ctx = document.getElementById(elementId);
+  new Chart(ctx, montarConfig(resp.data));
+}
+
+carregarGrafico("{{ url_for('relatorios.api_vendas_por_hora') }}", "grafico-vendas-hora", (data) => ({
+  type: "line",
+  data: { labels: data.labels, datasets: [{ label: "Total vendido (R$)", data: data.totais, borderColor: "#b8305f", tension: 0.2 }] },
+}));
+
+carregarGrafico("{{ url_for('relatorios.api_curva_estoque') }}", "grafico-curva-estoque", (data) => ({
+  type: "line",
+  data: { labels: data.labels, datasets: [{ label: "Unidades vendidas", data: data.unidades_vendidas, borderColor: "#8a2249", tension: 0.2 }] },
+}));
+
+carregarGrafico("{{ url_for('relatorios.api_ranking_equipes') }}", "grafico-ranking-equipes", (data) => ({
+  type: "bar",
+  data: { labels: data.labels, datasets: [{ label: "Total vendido (R$)", data: data.totais, backgroundColor: "#b8305f" }] },
+}));
+
+carregarGrafico("{{ url_for('relatorios.api_ranking_produtos') }}", "grafico-ranking-produtos", (data) => ({
+  type: "bar",
+  data: { labels: data.labels, datasets: [{ label: "Unidades vendidas", data: data.quantidades, backgroundColor: "#8a2249" }] },
+}));
+</script>
+{% endblock %}

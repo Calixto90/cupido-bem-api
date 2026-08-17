@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}Pagamentos{% endblock %}
+{% block conteudo %}
+<h1>Pagamentos registrados</h1>
+<a class="btn" href="{{ url_for('caixa.novo_pagamento') }}">+ Registrar pagamento</a>
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>Data</th><th>Equipe</th><th>Valor</th><th>Registrado por</th><th>Observação</th></tr></thead>
+    <tbody>
+      {% for p in pagamentos %}
+      <tr>
+        <td>{{ p.data_pagamento.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ p.equipe.nome }}</td>
+        <td>R$ {{ '%.2f'|format(p.valor_pago) }}</td>
+        <td>{{ p.registrado_por.nome }}</td>
+        <td>{{ p.observacao or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

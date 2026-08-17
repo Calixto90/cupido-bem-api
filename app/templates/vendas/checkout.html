@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block titulo %}Checkout{% endblock %}
+{% block conteudo %}
+<h1>Finalizar venda</h1>
+
+<div class="steps">
+  <div class="step ativo" id="indicador-1">1. Comprador</div>
+  <div class="step" id="indicador-2">2. Destinatário</div>
+  <div class="step" id="indicador-3">3. Confirmação</div>
+</div>
+
+<div id="carrinho-vazio-aviso" class="card hidden">
+  <p>Seu carrinho está vazio. <a href="{{ url_for('vendas.listar_disponiveis') }}">Voltar para produtos</a>.</p>
+</div>
+
+<div id="checkout-form">
+  <div class="card" id="passo-1">
+    <h2>Dados do comprador</h2>
+    <div class="field"><label>Nome *</label><input type="text" id="comprador-nome" required></div>
+    <div class="field"><label>Telefone *</label><input type="text" id="comprador-telefone" required></div>
+    <div class="field"><label>Email</label><input type="email" id="comprador-email"></div>
+    <div class="field"><label>Observação</label><textarea id="comprador-obs"></textarea></div>
+    <button type="button" onclick="irPara(2)">Próximo</button>
+  </div>
+
+  <div class="card hidden" id="passo-2">
+    <h2>Dados do destinatário</h2>
+    <div class="field"><label>Nome *</label><input type="text" id="dest-nome" required></div>
+    <div class="field"><label>Telefone</label><input type="text" id="dest-telefone"></div>
+    <div class="field"><label>Endereço *</label><textarea id="dest-endereco" required></textarea></div>
+    <div class="field"><label>Observação</label><textarea id="dest-obs"></textarea></div>
+    <button type="button" class="btn-secundario" onclick="irPara(1)">Voltar</button>
+    <button type="button" onclick="irParaConfirmacao()">Próximo</button>
+  </div>
+
+  <div class="card hidden" id="passo-3">
+    <h2>Confirmação</h2>
+    <div id="resumo-itens"></div>
+    <p><strong>Total: R$ <span id="resumo-total">0.00</span></strong></p>
+    <p id="erro-validacao" class="text-muted" style="color: var(--cor-erro);"></p>
+    <button type="button" class="btn-secundario" onclick="irPara(2)">Voltar</button>
+    <button type="button" id="btn-finalizar" onclick="finalizarVenda()">Confirmar e finalizar venda</button>
+  </div>
+
+  <div class="card hidden" id="passo-sucesso">
+    <h2>Venda concluída!</h2>
+    <p>Pedido <strong id="sucesso-pedido"></strong> registrado com sucesso.</p>
+    <a class="btn" href="{{ url_for('vendas.listar_disponiveis') }}">Voltar para produtos</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+<script>
+const itensCarrinho = lerCarrinho();
+if (itensCarrinho.length === 0) {
+  document.getElementById("checkout-form").classList.add("hidden");
+  document.getElementById("carrinho-vazio-aviso").classList.remove("hidden");
+}
+
+function irPara(passo) {
+  [1, 2, 3].forEach((p) => {
+    document.getElementById(`passo-${p}`).classList.toggle("hidden", p !== passo);
+    document.getElementById(`indicador-${p}`).classList.toggle("ativo", p === passo);
+  });
+}
+
+async function irParaConfirmacao() {
+  const destNome = document.getElementById("dest-nome").value.trim();
+  const destEndereco = document.getElementById("dest-endereco").value.trim();
+  if (!destNome || !destEndereco) {
+    alert("Preencha nome e endereço do destinatário.");
+    return;
+  }
+  irPara(3);
+  await validarCarrinho();
+}
+
+async function validarCarrinho() {
+  const payload = { itens: itensCarrinho.map((i) => ({ consignacao_id: i.consignacao_id, quantidade: i.quantidade })) };
+  const resp = await fetchJSON("{{ url_for('vendas.validar_checkout') }}", { method: "POST", body: JSON.stringify(payload) });
+
+  const resumo = document.getElementById("resumo-itens");
+  const erroEl = document.getElementById("erro-validacao");
+  const btnFinalizar = document.getElementById("btn-finalizar");
+
+  if (!resp.ok) {
+    erroEl.textContent = "Não foi possível validar o carrinho. Tente novamente.";
+    btnFinalizar.disabled = true;
+    return;
+  }
+
+  resumo.innerHTML = resp.data.itens
+    .map(
+      (i) =>
+        `<div>${i.produto_nome} — ${i.quantidade}x R$ ${i.preco_unitario} = R$ ${i.subtotal}
+          ${i.valido ? "" : `<strong style="color: var(--cor-erro);"> (${i.motivo})</strong>`}</div>`
+    )
+    .join("");
+  document.getElementById("resumo-total").textContent = resp.data.total;
+
+  if (!resp.data.valido) {
+    erroEl.textContent = "Alguns itens não estão mais disponíveis na quantidade solicitada. Ajuste o carrinho.";
+    btnFinalizar.disabled = true;
+  } else {
+    erroEl.textContent = "";
+    btnFinalizar.disabled = false;
+  }
+}
+
+async function finalizarVenda() {
+  const payload = {
+    itens: itensCarrinho.map((i) => ({ consignacao_id: i.consignacao_id, quantidade: i.quantidade })),
+    comprador: {
+      nome: document.getElementById("comprador-nome").value.trim(),
+      telefone: document.getElementById("comprador-telefone").value.trim(),
+      email: document.getElementById("comprador-email").value.trim(),
+      observacao: document.getElementById("comprador-obs").value.trim(),
+    },
+    destinatario: {
+      nome: document.getElementById("dest-nome").value.trim(),
+      telefone: document.getElementById("dest-telefone").value.trim(),
+      endereco: document.getElementById("dest-endereco").value.trim(),
+      observacao: document.getElementById("dest-obs").value.trim(),
+    },
+  };
+
+  if (!payload.comprador.nome || !payload.comprador.telefone) {
+    alert("Preencha nome e telefone do comprador.");
+    irPara(1);
+    return;
+  }
+
+  const resp = await fetchJSON("{{ url_for('vendas.finalizar_checkout') }}", { method: "POST", body: JSON.stringify(payload) });
+  if (!resp.ok) {
+    document.getElementById("erro-validacao").textContent = (resp.data && resp.data.erro) || "Erro ao finalizar a venda.";
+    await validarCarrinho();
+    return;
+  }
+
+  limparCarrinho();
+  document.getElementById("checkout-form").querySelectorAll(".card:not(#passo-sucesso)").forEach((el) => el.classList.add("hidden"));
+  document.getElementById("passo-sucesso").classList.remove("hidden");
+  document.getElementById("sucesso-pedido").textContent = resp.data.pedido_numero;
+}
+</script>
+{% endblock %}

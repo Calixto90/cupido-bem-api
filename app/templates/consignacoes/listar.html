@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Consignações{% endblock %}
+{% block conteudo %}
+<h1>Consignações</h1>
+<a class="btn" href="{{ url_for('consignacoes.nova_consignacao') }}">+ Nova consignação</a>
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>Equipe</th><th>Produto</th><th>Inicial</th><th>Atual</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for c in consignacoes %}
+      <tr>
+        <td>{{ c.equipe.nome }}</td>
+        <td>{{ c.produto.nome }}</td>
+        <td>{{ c.quantidade_inicial }}</td>
+        <td>{{ c.quantidade_atual }}</td>
+        <td><span class="badge {{ 'badge-ativa' if c.status == 'ativa' else 'badge-neutra' }}">{{ c.status }}</span></td>
+        <td>
+          <a href="{{ url_for('consignacoes.detalhe_consignacao', consignacao_id=c.id) }}">detalhes</a>
+          {% if c.status == 'ativa' %}
+          <form method="post" action="{{ url_for('consignacoes.cancelar_consignacao', consignacao_id=c.id) }}" style="display:inline;">
+            <button type="submit" class="btn-perigo" onclick="return confirm('Cancelar esta consignação e devolver o estoque?')">cancelar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

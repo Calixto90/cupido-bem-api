@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block titulo %}Vendas{% endblock %}
+{% block conteudo %}
+<h1>Produtos disponíveis para venda</h1>
+
+<div id="carrinho-resumo" class="card">
+  <h2>Carrinho</h2>
+  <div id="carrinho-itens"><p class="text-muted">Carrinho vazio.</p></div>
+  <p><strong>Total: R$ <span id="carrinho-total">0.00</span></strong></p>
+  <a class="btn" href="{{ url_for('vendas.checkout') }}">Ir para o checkout</a>
+</div>
+
+<div class="grid-cards">
+  {% for item in itens %}
+  {% set c = item.consignacao %}
+  <div class="card" data-consignacao-id="{{ c.id }}" data-produto-nome="{{ c.produto.nome }}" data-preco-unitario="{{ item.preco_unitario }}" data-disponivel="{{ c.quantidade_atual }}">
+    <h3>{{ c.produto.nome }}</h3>
+    <p>Equipe: {{ c.equipe.nome }}</p>
+    <p>Disponível: {{ c.quantidade_atual }}</p>
+    <p>Preço unitário: R$ {{ '%.2f'|format(item.preco_unitario) }}</p>
+    <div class="field">
+      <label>Quantidade</label>
+      <input type="number" class="qtd-input" min="1" max="{{ c.quantidade_atual }}" value="1">
+    </div>
+    <button type="button" class="btn-adicionar">Adicionar ao carrinho</button>
+  </div>
+  {% else %}
+  <p class="text-muted">Nenhuma consignação ativa disponível para sua equipe no momento.</p>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+<script>
+function renderCarrinho() {
+  const itens = lerCarrinho();
+  const container = document.getElementById("carrinho-itens");
+  const totalEl = document.getElementById("carrinho-total");
+
+  if (itens.length === 0) {
+    container.innerHTML = '<p class="text-muted">Carrinho vazio.</p>';
+  } else {
+    container.innerHTML = itens
+      .map(
+        (i) => `<div>${i.produto_nome} — ${i.quantidade} x R$ ${parseFloat(i.preco_unitario).toFixed(2)}
+          <a href="#" data-remover="${i.consignacao_id}">remover</a></div>`
+      )
+      .join("");
+  }
+  totalEl.textContent = totalCarrinho(itens).toFixed(2);
+
+  container.querySelectorAll("[data-remover]").forEach((el) => {
+    el.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      removerDoCarrinho(parseInt(el.dataset.remover, 10));
+      renderCarrinho();
+    });
+  });
+}
+
+document.querySelectorAll(".btn-adicionar").forEach((botao) => {
+  botao.addEventListener("click", () => {
+    const card = botao.closest("[data-consignacao-id]");
+    const qtdInput = card.querySelector(".qtd-input");
+    const quantidade = parseInt(qtdInput.value, 10) || 0;
+    const disponivel = parseInt(card.dataset.disponivel, 10);
+
+    if (quantidade < 1) return;
+    if (quantidade > disponivel) {
+      alert(`Só há ${disponivel} unidade(s) disponível(is).`);
+      return;
+    }
+
+    adicionarAoCarrinho({
+      consignacao_id: parseInt(card.dataset.consignacaoId, 10),
+      produto_nome: card.dataset.produtoNome,
+      preco_unitario: card.dataset.precoUnitario,
+      quantidade: quantidade,
+    });
+    renderCarrinho();
+  });
+});
+
+renderCarrinho();
+</script>
+{% endblock %}

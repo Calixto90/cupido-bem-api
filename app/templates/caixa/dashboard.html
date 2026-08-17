@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}Caixa{% endblock %}
+{% block conteudo %}
+<h1>Saldos por equipe</h1>
+<a class="btn" href="{{ url_for('caixa.novo_pagamento') }}">+ Registrar pagamento</a>
+<a class="btn btn-secundario" href="{{ url_for('caixa.listar_pagamentos') }}">Histórico de pagamentos</a>
+<p class="text-muted">Atualizado automaticamente a cada 25 segundos. Última atualização: <span id="ultima-atualizacao">agora</span></p>
+
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>Equipe</th><th>Total devido</th><th>Total pago</th><th>Saldo devedor</th></tr></thead>
+    <tbody id="tabela-saldos">
+      {% for s in saldos %}
+      <tr data-equipe-id="{{ s.equipe_id }}">
+        <td>{{ s.equipe_nome }}</td>
+        <td class="col-devido">R$ {{ '%.2f'|format(s.total_devido|float) }}</td>
+        <td class="col-pago">R$ {{ '%.2f'|format(s.total_pago|float) }}</td>
+        <td class="col-saldo">R$ {{ '%.2f'|format(s.saldo_devedor|float) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+async function atualizarSaldos() {
+  const resp = await fetchJSON("{{ url_for('caixa.api_saldos') }}", { method: "GET" });
+  if (!resp.ok) return;
+
+  resp.data.saldos.forEach((s) => {
+    const linha = document.querySelector(`tr[data-equipe-id="${s.equipe_id}"]`);
+    if (!linha) return;
+    linha.querySelector(".col-devido").textContent = `R$ ${parseFloat(s.total_devido).toFixed(2)}`;
+    linha.querySelector(".col-pago").textContent = `R$ ${parseFloat(s.total_pago).toFixed(2)}`;
+    linha.querySelector(".col-saldo").textContent = `R$ ${parseFloat(s.saldo_devedor).toFixed(2)}`;
+  });
+
+  const agora = new Date(resp.data.atualizado_em);
+  document.getElementById("ultima-atualizacao").textContent = agora.toLocaleTimeString("pt-BR");
+}
+
+setInterval(atualizarSaldos, 25000);
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Precificação — {{ equipe.nome }}{% endblock %}
+{% block conteudo %}
+<h1>Precificação — {{ equipe.nome }}</h1>
+<a class="btn" href="{{ url_for('precificacao.lote', equipe_id=equipe.id) }}">Precificação em lote</a>
+
+<div class="card table-scroll" style="margin-top: 1rem;">
+  <table>
+    <thead><tr><th>Produto</th><th>Preço global</th><th>Preço da equipe</th><th></th></tr></thead>
+    <tbody>
+      {% for p in produtos %}
+      {% set preco_equipe = precos_equipe.get(p.id) %}
+      <tr>
+        <td>{{ p.nome }}</td>
+        <td>R$ {{ '%.2f'|format(p.preco_venda) }}</td>
+        <td>{% if preco_equipe %}R$ {{ '%.2f'|format(preco_equipe.preco_venda) }}{% else %}<span class="text-muted">usa preço global</span>{% endif %}</td>
+        <td><a href="{{ url_for('precificacao.individual', equipe_id=equipe.id, produto_id=p.id) }}">definir</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
